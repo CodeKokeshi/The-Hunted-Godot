@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://div0mtlronfrk"]
+
+[ext_resource type="PackedScene" uid="uid://b17qvkt74384w" path="res://Scenes/Players/mark.tscn" id="1_38y6l"]
+
+[node name="DebugLevel" type="Node2D"]
+
+[node name="mark" parent="." instance=ExtResource("1_38y6l")]
+position = Vector2(576, 324)

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512mm"
+   height="256mm"
+   viewBox="0 0 512 256"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="Light.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#3cc6e2"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.70822811"
+     inkscape:cx="967.90848"
+     inkscape:cy="534.43233"
+     inkscape:window-width="1920"
+     inkscape:window-height="991"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#000000;fill-opacity:1;stroke-width:0.374765;paint-order:stroke fill markers"
+       id="rect2"
+       width="512"
+       height="256"
+       x="-512"
+       y="0"
+       transform="scale(-1,1)" />
+    <path
+       id="path2"
+       style="fill:#ffffff;fill-opacity:0.367454;stroke-width:0.264999;paint-order:stroke fill markers"
+       d="M 365.24049,15.712 242.6123,40.868886 42.060733,111.42554 c -9.65635,5.40854 -5.51003,30.12248 2.07068,36.38072 54.3377,25.01166 122.854557,36.27848 178.011417,59.59155 46.14284,20.37149 94.06098,29.69667 144.95956,33.29477 C 311.3092,232.33013 270.02397,184.41612 270.00031,127.99972 270.07753,72.33889 310.33842,24.871492 365.24049,15.712 Z"
+       sodipodi:nodetypes="cccccccc" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Layer 2">
+    <circle
+       style="fill:#ffffff;fill-opacity:0.532808;stroke-width:0.266002;paint-order:stroke fill markers"
+       id="path1"
+       cx="-384"
+       cy="128"
+       r="114"
+       transform="scale(-1,1)" />
+    <circle
+       style="fill:#ffffff;fill-opacity:0.3;stroke-width:0.228669;paint-order:stroke fill markers"
+       id="circle1"
+       cy="128"
+       cx="-384"
+       r="98"
+       transform="scale(-1,1)" />
+    <circle
+       style="fill:#ffffff;fill-opacity:0.3;stroke-width:0.163335;paint-order:stroke fill markers"
+       id="circle2"
+       cy="128"
+       cx="-384"
+       r="70"
+       transform="scale(-1,1)" />
+  </g>
+</svg>
