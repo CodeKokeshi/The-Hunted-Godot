@@ -23,16 +23,35 @@ var lunge_direction = Vector2.ZERO
 
 # Animation and rotation
 @onready var animation_player = $animation
+@onready var bullet_spawn_point = $bullet_spawn
 var target_rotation = 0.0
 var rotation_tween: Tween
+
+# Bullet system
+const BULLET_SCENE = preload("res://Scenes/Players/bullet.tscn")
 
 # Input tracking
 var input_direction = Vector2.ZERO
 var is_aiming = false
 
+# Reload system
+var reload_timer = 0.0
+var is_reloading = false
+
+# Firing rotation control - prevents awkward bullet direction when changing aim during firing
+var can_rotate_while_firing = true
+
+# Firing rate control - creates gap between shots for rotation updates
+var fire_rate_timer = 0.0
+var fire_rate_delay = 0.05  # 50ms gap between shots (adjustable)
+var is_currently_firing = false  # Prevents multiple bullets per animation cycle
+
 func _ready():
 	# Initialize the state machine
 	change_state(PlayerState.IDLE)
+	
+	# Initialize rotation control (allow rotation by default)
+	can_rotate_while_firing = true
 	
 	# Connect animation finished signal
 	animation_player.animation_finished.connect(_on_animation_finished)
@@ -114,6 +133,12 @@ func exit_state(state: PlayerState):
 
 # Update state logic (during)
 func update_state(delta: float):
+	# Handle reload timer separately from state machine
+	handle_reload_timer(delta)
+	
+	# Handle fire rate timer
+	handle_fire_rate_timer(delta)
+	
 	match current_state:
 		PlayerState.IDLE:
 			during_idle(delta)
@@ -148,10 +173,16 @@ func handle_input():
 func handle_state_transitions():
 	match current_state:
 		PlayerState.IDLE:
-			if Input.is_action_just_pressed("roll") and input_direction != Vector2.ZERO and has_enough_stamina_for_roll():
+			if Input.is_action_just_pressed("reload"):
+				start_reload()
+			elif Input.is_action_just_pressed("roll") and input_direction != Vector2.ZERO and has_enough_stamina_for_roll():
 				change_state(PlayerState.ROLLING)
-			elif Input.is_action_just_pressed("attack") and is_aiming:
-				change_state(PlayerState.FIRING)
+			elif Input.is_action_pressed("attack") and is_aiming and not is_reloading:
+				if PlayerGlobals.current_ammo_ready > 0:
+					change_state(PlayerState.FIRING)
+				elif PlayerGlobals.current_ammo_reserves > 0:
+					# Auto-reload when trying to shoot with 0 ammo
+					start_reload()
 			elif Input.is_action_just_pressed("attack"):
 				change_state(PlayerState.ATTACKING)
 			elif is_aiming:
@@ -160,10 +191,16 @@ func handle_state_transitions():
 				change_state(PlayerState.RUNNING)
 		
 		PlayerState.RUNNING:
-			if Input.is_action_just_pressed("roll") and has_enough_stamina_for_roll():
+			if Input.is_action_just_pressed("reload"):
+				start_reload()
+			elif Input.is_action_just_pressed("roll") and has_enough_stamina_for_roll():
 				change_state(PlayerState.ROLLING)
-			elif Input.is_action_just_pressed("attack") and is_aiming:
-				change_state(PlayerState.FIRING)
+			elif Input.is_action_pressed("attack") and is_aiming and not is_reloading:
+				if PlayerGlobals.current_ammo_ready > 0:
+					change_state(PlayerState.FIRING)
+				elif PlayerGlobals.current_ammo_reserves > 0:
+					# Auto-reload when trying to shoot with 0 ammo
+					start_reload()
 			elif Input.is_action_just_pressed("attack"):
 				change_state(PlayerState.ATTACKING)
 			elif is_aiming:
@@ -172,15 +209,21 @@ func handle_state_transitions():
 				change_state(PlayerState.IDLE)
 		
 		PlayerState.AIMING:
-			if Input.is_action_just_pressed("attack"):
-				change_state(PlayerState.FIRING)
+			if Input.is_action_just_pressed("reload"):
+				start_reload()
+			elif Input.is_action_pressed("attack") and not is_reloading:
+				if PlayerGlobals.current_ammo_ready > 0:
+					change_state(PlayerState.FIRING)
+				elif PlayerGlobals.current_ammo_reserves > 0:
+					# Auto-reload when trying to shoot with 0 ammo
+					start_reload()
 			elif not is_aiming:
 				if input_direction != Vector2.ZERO:
 					change_state(PlayerState.RUNNING)
 				else:
 					change_state(PlayerState.IDLE)
 		
-		# Other states (FIRING, ATTACKING, ROLLING) transition automatically via animation_finished
+		# Other states (FIRING, ATTACKING, ROLLING, RELOADING) transition automatically via animation_finished or timer
 
 # ============================================================================
 # ROTATION AND MOVEMENT HELPERS
@@ -221,14 +264,98 @@ func smooth_rotate_to(angle: float):
 	rotation_tween.tween_property(self, "rotation", angle, tween_duration)
 
 func look_at_mouse():
+	if not can_rotate_while_firing and current_state == PlayerState.FIRING:
+		# Debug: Uncomment the line below to see when rotation is blocked
+		# print("Rotation blocked during firing to prevent awkward bullet directions")
+		return # Don't rotate while firing to prevent awkward bullet directions
+	
 	var mouse_pos = get_global_mouse_position()
 	look_at(mouse_pos)
+
+func spawn_bullet():
+	# Check if we have ammo
+	if PlayerGlobals.current_ammo_ready <= 0:
+		return
+	
+	# Consume ammo
+	PlayerGlobals.current_ammo_ready -= 1
+	
+	# Create bullet instance
+	var bullet = BULLET_SCENE.instantiate()
+	
+	# Set bullet position to spawn point
+	bullet.global_position = bullet_spawn_point.global_position
+	
+	# Set bullet direction and rotation based on player rotation
+	var bullet_direction = Vector2(cos(rotation), sin(rotation))
+	bullet.set_direction_and_rotation(bullet_direction, rotation)
+	
+	# Add bullet to the scene tree (same level as player)
+	get_parent().add_child(bullet)
+
+func start_reload():
+	# Check if we need to reload (not already full)
+	if PlayerGlobals.current_ammo_ready >= PlayerGlobals.max_ammo_ready:
+		return
+	
+	# Check if we have ammo in reserves
+	if PlayerGlobals.current_ammo_reserves <= 0:
+		return
+	
+	# Check if already reloading
+	if is_reloading:
+		return
+	
+	# Start reload timer
+	is_reloading = true
+	reload_timer = PlayerGlobals.reload_speed
+	print("Starting reload... ", reload_timer, " seconds")
+
+func reload_weapon():
+	# Calculate how much ammo we need
+	var ammo_needed = PlayerGlobals.max_ammo_ready - PlayerGlobals.current_ammo_ready
+	
+	# Calculate how much ammo we can actually reload
+	var ammo_to_reload = min(ammo_needed, PlayerGlobals.current_ammo_reserves)
+	
+	# Transfer ammo from reserves to ready
+	PlayerGlobals.current_ammo_reserves -= ammo_to_reload
+	PlayerGlobals.current_ammo_ready += ammo_to_reload
+	
+	print("Reloaded: ", ammo_to_reload, " bullets. Ready: ", PlayerGlobals.current_ammo_ready, "/", PlayerGlobals.max_ammo_ready, " Reserves: ", PlayerGlobals.current_ammo_reserves, "/", PlayerGlobals.max_ammo_reserves)
+
+func handle_reload_timer(delta: float):
+	if is_reloading:
+		reload_timer -= delta
+		if reload_timer <= 0.0:
+			# Reload finished
+			reload_weapon()
+			is_reloading = false
+			reload_timer = 0.0
+
+func handle_fire_rate_timer(delta: float):
+	if fire_rate_timer > 0.0:
+		fire_rate_timer -= delta
+		if fire_rate_timer <= 0.0:
+			fire_rate_timer = 0.0
 
 func _on_animation_finished():
 	# Handle animation finished events
 	match current_state:
 		PlayerState.FIRING:
-			if is_aiming:
+			# Animation finished, allow next shot
+			is_currently_firing = false
+			# Set fire rate timer to create a gap between shots
+			fire_rate_timer = fire_rate_delay
+			# Re-enable rotation during the gap
+			can_rotate_while_firing = true
+			
+			# Check if we should continue firing or transition to another state
+			if is_aiming and Input.is_action_pressed("attack") and not is_reloading and PlayerGlobals.current_ammo_ready > 0:
+				# Stay in firing state but don't immediately fire again
+				# The actual firing will happen when fire_rate_timer reaches 0
+				pass
+			elif is_aiming:
 				change_state(PlayerState.AIMING)
 			else:
 				if input_direction != Vector2.ZERO:
@@ -256,6 +383,8 @@ func enter_idle():
 	animation_player.play("idle")
 	movement_locked = false
 	velocity = Vector2.ZERO
+	# Ensure rotation is enabled in idle state
+	can_rotate_while_firing = true
 
 func exit_idle():
 	pass
@@ -270,6 +399,8 @@ func during_idle(_delta: float):
 func enter_running():
 	animation_player.play("run")
 	movement_locked = false
+	# Ensure rotation is enabled in running state
+	can_rotate_while_firing = true
 
 func exit_running():
 	pass
@@ -287,6 +418,8 @@ func enter_aiming():
 	animation_player.play("aiming")
 	movement_locked = true
 	velocity = Vector2.ZERO
+	# Ensure rotation is enabled when aiming (especially when transitioning from firing)
+	can_rotate_while_firing = true
 
 func exit_aiming():
 	movement_locked = false
@@ -300,15 +433,53 @@ func during_aiming(_delta: float):
 # ============================================================================
 
 func enter_firing():
+	# Update rotation to current mouse position before starting animation
+	look_at_mouse()
+	# Play firing animation
 	animation_player.play("firing")
 	movement_locked = true
 	velocity = Vector2.ZERO
+	# Lock rotation to prevent awkward bullet directions while firing animation plays
+	can_rotate_while_firing = false
+	# Set firing flag to prevent spam
+	is_currently_firing = true
+	# Spawn bullet when entering firing state
+	spawn_bullet()
 
 func exit_firing():
-	pass
+	# Re-enable rotation when exiting firing state
+	can_rotate_while_firing = true
+	# Reset firing flag
+	is_currently_firing = false
 
 func during_firing(_delta: float):
 	velocity = Vector2.ZERO
+	
+	# Allow rotation updates during the fire rate gap
+	if fire_rate_timer > 0.0:
+		look_at_mouse()
+	
+	# Check if we can fire again (fire rate timer finished and not currently firing)
+	if fire_rate_timer <= 0.0 and not is_currently_firing:
+		# Check if we should continue firing
+		if is_aiming and Input.is_action_pressed("attack") and not is_reloading and PlayerGlobals.current_ammo_ready > 0:
+			# Update rotation one more time before firing
+			look_at_mouse()
+			# Lock rotation for the animation
+			can_rotate_while_firing = false
+			# Set firing flag to prevent spam
+			is_currently_firing = true
+			# Fire again
+			animation_player.play("firing")
+			spawn_bullet()
+		elif not (is_aiming and Input.is_action_pressed("attack")):
+			# Player stopped firing, transition to appropriate state
+			if is_aiming:
+				change_state(PlayerState.AIMING)
+			elif input_direction != Vector2.ZERO:
+				change_state(PlayerState.RUNNING)
+			else:
+				change_state(PlayerState.IDLE)
 
 # ============================================================================
 # ATTACKING STATE

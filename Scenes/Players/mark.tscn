@@ -281,4 +281,4 @@ autoplay = "idle"
 shape = SubResource("CapsuleShape2D_i3meb")
 
 [node name="bullet_spawn" type="Marker2D" parent="."]
-position = Vector2(114, 0)
+position = Vector2(160, 0)
