@@ -266,8 +266,10 @@ radius = 32.0
 height = 106.0
 
 [node name="mark" type="CharacterBody2D"]
+collision_mask = 2
 motion_mode = 1
-wall_min_slide_angle = 3.14159
+wall_min_slide_angle = 0.0
+safe_margin = 0.24
 script = ExtResource("1_wv3lo")
 
 [node name="animation" type="AnimatedSprite2D" parent="."]
@@ -277,3 +279,6 @@ autoplay = "idle"
 
 [node name="body_shape" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_i3meb")
+
+[node name="bullet_spawn" type="Marker2D" parent="."]
+position = Vector2(114, 0)

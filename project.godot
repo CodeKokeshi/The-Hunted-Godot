@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
+PlayerGlobals="*res://Scripts/Autoloads/PlayerGlobals.gd"
 
 [editor_plugins]
 
@@ -60,3 +61,10 @@ attack={
 "events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":1,"position":Vector2(560, 18),"global_position":Vector2(569, 66),"factor":1.0,"button_index":1,"canceled":false,"pressed":true,"double_click":false,"script":null)
 ]
 }
+
+[layer_names]
+
+2d_physics/layer_1="bodies"
+2d_physics/layer_2="walls"
+2d_physics/layer_3="player_hitbox"
+2d_physics/layer_4="enemy_hurtbox"

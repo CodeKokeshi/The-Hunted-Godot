@@ -15,8 +15,8 @@ var current_state: PlayerState = PlayerState.IDLE
 var previous_state: PlayerState = PlayerState.IDLE
 
 # Movement variables
-const SPEED = 300.0
-const ROLL_SPEED = 500.0
+const SPEED = 400.0
+const ROLL_SPEED = 560.0
 const ATTACK_LUNGE_SPEED = 200.0
 var movement_locked = false
 var lunge_direction = Vector2.ZERO
@@ -40,7 +40,27 @@ func _ready():
 func _physics_process(delta):
 	handle_input()
 	update_state(delta)
+	regenerate_stamina(delta)
 	move_and_slide()
+
+# ============================================================================
+# STAMINA SYSTEM
+# ============================================================================
+
+func regenerate_stamina(delta: float):
+	# Only regenerate if not at max stamina
+	if PlayerGlobals.current_stamina < PlayerGlobals.max_stamina:
+		PlayerGlobals.current_stamina += PlayerGlobals.stamina_regen_per_sec * delta
+		# Clamp to max stamina
+		PlayerGlobals.current_stamina = min(PlayerGlobals.current_stamina, PlayerGlobals.max_stamina)
+
+func has_enough_stamina_for_roll() -> bool:
+	return PlayerGlobals.current_stamina >= PlayerGlobals.roll_cost
+
+func consume_roll_stamina():
+	PlayerGlobals.current_stamina -= PlayerGlobals.roll_cost
+	# Ensure it doesn't go below 0
+	PlayerGlobals.current_stamina = max(PlayerGlobals.current_stamina, 0)
 
 # ============================================================================
 # STATE MACHINE FUNCTIONS
@@ -128,7 +148,7 @@ func handle_input():
 func handle_state_transitions():
 	match current_state:
 		PlayerState.IDLE:
-			if Input.is_action_just_pressed("roll") and input_direction != Vector2.ZERO:
+			if Input.is_action_just_pressed("roll") and input_direction != Vector2.ZERO and has_enough_stamina_for_roll():
 				change_state(PlayerState.ROLLING)
 			elif Input.is_action_just_pressed("attack") and is_aiming:
 				change_state(PlayerState.FIRING)
@@ -140,7 +160,7 @@ func handle_state_transitions():
 				change_state(PlayerState.RUNNING)
 		
 		PlayerState.RUNNING:
-			if Input.is_action_just_pressed("roll"):
+			if Input.is_action_just_pressed("roll") and has_enough_stamina_for_roll():
 				change_state(PlayerState.ROLLING)
 			elif Input.is_action_just_pressed("attack") and is_aiming:
 				change_state(PlayerState.FIRING)
@@ -170,17 +190,17 @@ func rotate_to_direction(direction: Vector2):
 	if direction == Vector2.ZERO:
 		return
 	
-	var angle = 0.0
-	if direction.x > 0:  # Right
-		angle = 0.0
-	elif direction.x < 0:  # Left
-		angle = PI
-	elif direction.y < 0:  # Up
-		angle = -PI/2
-	elif direction.y > 0:  # Down
-		angle = PI/2
+	# Calculate the target angle from the direction vector
+	var target_angle = direction.angle()
 	
-	smooth_rotate_to(angle)
+	# Check if we're already facing approximately the same direction
+	var angle_diff = abs(target_angle - rotation)
+	if angle_diff > PI:
+		angle_diff = 2 * PI - angle_diff
+	
+	# Only rotate if the difference is significant (more than ~5 degrees)
+	if angle_diff > 0.1:
+		smooth_rotate_to(target_angle)
 
 func smooth_rotate_to(angle: float):
 	if rotation_tween:
@@ -297,15 +317,20 @@ func during_firing(_delta: float):
 func enter_attacking():
 	animation_player.play("knife")
 	movement_locked = true
-	# Store current facing direction for lunge
-	lunge_direction = Vector2(cos(rotation), sin(rotation))
+	# Rotate to face current input direction first, then store it for lunge
+	if input_direction != Vector2.ZERO:
+		rotate_to_direction(input_direction)
+		lunge_direction = input_direction
+	else:
+		# If no input, use current facing direction
+		lunge_direction = Vector2(cos(rotation), sin(rotation))
 
 func exit_attacking():
 	movement_locked = false
 	lunge_direction = Vector2.ZERO
 
 func during_attacking(_delta: float):
-	# Lunge forward slightly in the facing direction
+	# Lunge forward in the stored direction
 	velocity = lunge_direction * ATTACK_LUNGE_SPEED
 
 # ============================================================================
@@ -315,13 +340,16 @@ func during_attacking(_delta: float):
 func enter_rolling():
 	animation_player.play("roll")
 	movement_locked = true
-	# Store current facing direction for roll
-	lunge_direction = Vector2(cos(rotation), sin(rotation))
+	# Consume stamina for rolling
+	consume_roll_stamina()
+	# Rotate to face input direction first, then store it for roll
+	rotate_to_direction(input_direction)
+	lunge_direction = input_direction
 
 func exit_rolling():
 	movement_locked = false
 	lunge_direction = Vector2.ZERO
 
 func during_rolling(_delta: float):
-	# Dash forward in the facing direction
+	# Dash forward in the input direction
 	velocity = lunge_direction * ROLL_SPEED
