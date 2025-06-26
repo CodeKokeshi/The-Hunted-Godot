@@ -69,7 +69,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 value = 100.0
-fill_mode = 0
 show_percentage = false
 
 [node name="HPLabel" type="Label" parent="DarkPanel/VBoxContainer/BarsContainer/HPContainer"]
@@ -96,7 +95,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 value = 100.0
-fill_mode = 0
 show_percentage = false
 
 [node name="StaminaLabel" type="Label" parent="DarkPanel/VBoxContainer/BarsContainer/StaminaContainer"]
