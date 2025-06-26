@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://drspcgk8h1jrh"]
+[gd_scene load_steps=8 format=3 uid="uid://drspcgk8h1jrh"]
 
 [ext_resource type="Script" uid="uid://de5m207h4wtbq" path="res://Scripts/UI/PlayerUI.gd" id="1_8xk5w"]
 
@@ -13,6 +13,34 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3"]
+bg_color = Color(0.15, 0.15, 0.15, 0.7)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4"]
+bg_color = Color(0.6, 0.1, 0.1, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5"]
+bg_color = Color(0.15, 0.15, 0.15, 0.7)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6"]
+bg_color = Color(0.1, 0.5, 0.1, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
 bg_color = Color(0.08, 0.08, 0.08, 0.9)
@@ -68,6 +96,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_3")
+theme_override_styles/fill = SubResource("StyleBoxFlat_4")
 value = 100.0
 show_percentage = false
 
@@ -94,6 +124,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_5")
+theme_override_styles/fill = SubResource("StyleBoxFlat_6")
 value = 100.0
 show_percentage = false
 

@@ -22,6 +22,10 @@ const FLASH_COLOR = Color.WHITE
 var previous_hp: float = 100.0
 var previous_stamina: float = 100.0
 
+# Update throttling to prevent lag
+var stamina_update_timer: float = 0.0
+const STAMINA_UPDATE_INTERVAL: float = 0.05  # Update every 50ms instead of every frame
+
 # UI Animation settings
 const TWEEN_DURATION = 0.3
 const RELOAD_FLASH_DURATION = 0.1
@@ -39,11 +43,8 @@ func _ready():
 	if PlayerGlobals.has_signal("reload_finished"):
 		PlayerGlobals.reload_finished.connect(_on_reload_finished)
 	
-	# Set initial bar colors
-	hp_bar.modulate = HP_COLOR
-	stamina_bar.modulate = STAMINA_COLOR
-	
-	# Set initial label colors to white for visibility
+	# Set initial bar colors (removed since we're using StyleBox theming)
+	# Labels remain white for visibility
 	if hp_label:
 		hp_label.modulate = Color.WHITE
 	if stamina_label:
@@ -55,16 +56,22 @@ func _ready():
 	update_ammo_display()
 	hide_reload_indicator()
 
-func _process(_delta):
-	# Update stamina continuously (since it regenerates smoothly)
-	# Only update bar value, color changes handled by update_stamina_display
+func _process(delta):
+	# Throttle stamina updates to prevent lag
+	stamina_update_timer += delta
+	if stamina_update_timer >= STAMINA_UPDATE_INTERVAL:
+		update_stamina_efficiently()
+		stamina_update_timer = 0.0
+
+func update_stamina_efficiently():
+	# Update stamina only when needed (not every frame)
 	if stamina_bar:
 		var current_stamina = PlayerGlobals.current_stamina
 		var max_stamina = PlayerGlobals.max_stamina
 		stamina_bar.value = (current_stamina / max_stamina) * 100.0
 		
 		# Check for changes and handle color flashing
-		if current_stamina != previous_stamina:
+		if abs(current_stamina - previous_stamina) > 0.1:  # Only flash on significant changes
 			if current_stamina < previous_stamina:
 				flash_stamina_bar(false)  # Stamina used
 			elif current_stamina > previous_stamina and previous_stamina < max_stamina:
@@ -102,11 +109,13 @@ func flash_hp_bar(is_increase: bool = false):
 	if hp_tween:
 		hp_tween.kill()
 	
-	var flash_color = FLASH_COLOR if not is_increase else Color.CYAN
+	# Flash the entire progress bar container for visibility
+	var flash_color = Color.WHITE if not is_increase else Color.CYAN
+	var original_color = Color.WHITE
 	
 	hp_tween = create_tween()
 	hp_tween.tween_property(hp_bar, "modulate", flash_color, RELOAD_FLASH_DURATION)
-	hp_tween.tween_property(hp_bar, "modulate", HP_COLOR, RELOAD_FLASH_DURATION)
+	hp_tween.tween_property(hp_bar, "modulate", original_color, RELOAD_FLASH_DURATION)
 
 # ============================================================================
 # STAMINA SYSTEM
@@ -131,11 +140,13 @@ func flash_stamina_bar(is_increase: bool = false):
 	if stamina_tween:
 		stamina_tween.kill()
 	
-	var flash_color = FLASH_COLOR if not is_increase else Color.YELLOW
+	# Flash the entire progress bar container for visibility
+	var flash_color = Color.WHITE if not is_increase else Color.YELLOW
+	var original_color = Color.WHITE
 	
 	stamina_tween = create_tween()
 	stamina_tween.tween_property(stamina_bar, "modulate", flash_color, RELOAD_FLASH_DURATION)
-	stamina_tween.tween_property(stamina_bar, "modulate", STAMINA_COLOR, RELOAD_FLASH_DURATION)
+	stamina_tween.tween_property(stamina_bar, "modulate", original_color, RELOAD_FLASH_DURATION)
 
 # ============================================================================
 # AMMO SYSTEM
