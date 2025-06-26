@@ -1,6 +1,104 @@
 [gd_scene load_steps=2 format=3 uid="uid://drspcgk8h1jrh"]
 
-[ext_resource type="Script" uid="uid://crgifahs6jkd0" path="res://Scripts/Players/Mark/player_ui.gd" id="1_iyl1i"]
+[ext_resource type="Script" uid="uid://de5m207h4wtbq" path="res://Scripts/UI/PlayerUI.gd" id="1_8xk5w"]
 
-[node name="PlayerUI" type="CanvasLayer"]
-script = ExtResource("1_iyl1i")
+[node name="PlayerUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_8xk5w")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+custom_minimum_size = Vector2(200, 80)
+layout_mode = 1
+offset_left = 20.0
+offset_top = 18.0
+offset_right = 220.0
+offset_bottom = 117.0
+
+[node name="BarsContainer" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="HPContainer" type="Control" parent="VBoxContainer/BarsContainer"]
+custom_minimum_size = Vector2(150, 18)
+layout_mode = 2
+
+[node name="HPBar" type="ProgressBar" parent="VBoxContainer/BarsContainer/HPContainer"]
+custom_minimum_size = Vector2(160, 24)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+value = 100.0
+fill_mode = 1
+show_percentage = false
+
+[node name="HPLabel" type="Label" parent="VBoxContainer/BarsContainer/HPContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "HP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StaminaContainer" type="Control" parent="VBoxContainer/BarsContainer"]
+custom_minimum_size = Vector2(150, 18)
+layout_mode = 2
+
+[node name="StaminaBar" type="ProgressBar" parent="VBoxContainer/BarsContainer/StaminaContainer"]
+custom_minimum_size = Vector2(160, 24)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+value = 100.0
+fill_mode = 1
+show_percentage = false
+
+[node name="StaminaLabel" type="Label" parent="VBoxContainer/BarsContainer/StaminaContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Stamina"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AmmoContainer" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="AmmoLabel" type="Label" parent="VBoxContainer/AmmoContainer"]
+layout_mode = 2
+text = "Ammo: 8/40"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ReloadIndicator" type="Label" parent="VBoxContainer/AmmoContainer"]
+layout_mode = 2
+text = "RELOADING"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="UIBackground" type="NinePatchRect" parent="."]
+z_index = -1
+layout_mode = 1
+offset_left = 15.0
+offset_top = 15.0
+offset_right = 305.0
+offset_bottom = 125.0
+grow_horizontal = 0
+grow_vertical = 0

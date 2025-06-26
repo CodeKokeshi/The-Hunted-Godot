@@ -280,8 +280,9 @@ func spawn_bullet():
 	if PlayerGlobals.current_ammo_ready <= 0:
 		return
 	
-	# Consume ammo
+	# Consume ammo and emit signal
 	PlayerGlobals.current_ammo_ready -= 1
+	PlayerGlobals.ammo_changed.emit(PlayerGlobals.current_ammo_ready, PlayerGlobals.current_ammo_reserves)
 	
 	# Create bullet instance
 	var bullet = BULLET_SCENE.instantiate()
@@ -309,9 +310,10 @@ func start_reload():
 	if is_reloading:
 		return
 	
-	# Start reload timer
+	# Start reload timer and emit signal
 	is_reloading = true
 	reload_timer = PlayerGlobals.reload_speed
+	PlayerGlobals.reload_started.emit(PlayerGlobals.reload_speed)
 	print("Starting reload... ", reload_timer, " seconds")
 
 func reload_weapon():
@@ -324,6 +326,10 @@ func reload_weapon():
 	# Transfer ammo from reserves to ready
 	PlayerGlobals.current_ammo_reserves -= ammo_to_reload
 	PlayerGlobals.current_ammo_ready += ammo_to_reload
+	
+	# Emit reload finished signal
+	PlayerGlobals.reload_finished.emit()
+	PlayerGlobals.ammo_changed.emit(PlayerGlobals.current_ammo_ready, PlayerGlobals.current_ammo_reserves)
 	
 	print("Reloaded: ", ammo_to_reload, " bullets. Ready: ", PlayerGlobals.current_ammo_ready, "/", PlayerGlobals.max_ammo_ready, " Reserves: ", PlayerGlobals.current_ammo_reserves, "/", PlayerGlobals.max_ammo_reserves)
 
