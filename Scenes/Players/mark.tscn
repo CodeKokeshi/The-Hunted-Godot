@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://b17qvkt74384w"]
+[gd_scene load_steps=44 format=3 uid="uid://b17qvkt74384w"]
 
 [ext_resource type="Texture2D" uid="uid://bek504b3ydpn5" path="res://Sprites/Player/Shooting.svg" id="1_h4x7u"]
 [ext_resource type="Script" uid="uid://cndg285u740ly" path="res://Scripts/Players/Mark/mark.gd" id="1_wv3lo"]
@@ -9,6 +9,8 @@
 [ext_resource type="Texture2D" uid="uid://dofs654y26ojj" path="res://Sprites/Player/Rolling.svg" id="5_anwk2"]
 [ext_resource type="Texture2D" uid="uid://mmosxeiyr04d" path="res://Sprites/Player/Running_Carrying.svg" id="5_wv3lo"]
 [ext_resource type="Texture2D" uid="uid://4455m0i1ek5l" path="res://Sprites/Player/Throw.svg" id="8_yxmcl"]
+[ext_resource type="Script" uid="uid://bhd4nuiu23e7l" path="res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_noise_emitter_2d.gd" id="10_yxmcl"]
+[ext_resource type="Script" uid="uid://dimvdouy8g0sv" path="res://addons/phantom_camera/scripts/resources/phantom_camera_noise_2d.gd" id="11_icige"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_anwk2"]
 atlas = ExtResource("1_h4x7u")
@@ -265,6 +267,19 @@ animations = [{
 radius = 32.0
 height = 106.0
 
+[sub_resource type="Resource" id="Resource_34djb"]
+script = ExtResource("11_icige")
+amplitude = 50.0
+frequency = 10.0
+randomize_noise_seed = 1
+noise_seed = 896
+positional_noise = true
+rotational_noise = false
+positional_multiplier_x = 1.0
+positional_multiplier_y = 1.0
+rotational_multiplier = 1.0
+metadata/_custom_type_script = "uid://dimvdouy8g0sv"
+
 [node name="mark" type="CharacterBody2D"]
 collision_mask = 2
 motion_mode = 1
@@ -282,3 +297,9 @@ shape = SubResource("CapsuleShape2D_i3meb")
 
 [node name="bullet_spawn" type="Marker2D" parent="."]
 position = Vector2(160, 0)
+
+[node name="gun_shake" type="Node2D" parent="."]
+script = ExtResource("10_yxmcl")
+noise = SubResource("Resource_34djb")
+duration = 0.25
+metadata/_custom_type_script = "uid://bhd4nuiu23e7l"

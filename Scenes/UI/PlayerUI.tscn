@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://drspcgk8h1jrh"]
+
+[ext_resource type="Script" uid="uid://crgifahs6jkd0" path="res://Scripts/Players/Mark/player_ui.gd" id="1_iyl1i"]
+
+[node name="PlayerUI" type="CanvasLayer"]
+script = ExtResource("1_iyl1i")

@@ -271,8 +271,11 @@ func look_at_mouse():
 	
 	var mouse_pos = get_global_mouse_position()
 	look_at(mouse_pos)
+	
+@onready var gun_shake: PhantomCameraNoiseEmitter2D = $gun_shake
 
 func spawn_bullet():
+	gun_shake.emit()
 	# Check if we have ammo
 	if PlayerGlobals.current_ammo_ready <= 0:
 		return
