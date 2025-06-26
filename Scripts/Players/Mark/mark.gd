@@ -43,7 +43,6 @@ var can_rotate_while_firing = true
 
 # Firing rate control - creates gap between shots for rotation updates
 var fire_rate_timer = 0.0
-var fire_rate_delay = 0.05  # 50ms gap between shots (adjustable)
 var is_currently_firing = false  # Prevents multiple bullets per animation cycle
 
 func _ready():
@@ -355,7 +354,7 @@ func _on_animation_finished():
 			# Animation finished, allow next shot
 			is_currently_firing = false
 			# Set fire rate timer to create a gap between shots
-			fire_rate_timer = fire_rate_delay
+			fire_rate_timer = PlayerGlobals.fire_rate
 			# Re-enable rotation during the gap
 			can_rotate_while_firing = true
 			

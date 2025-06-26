@@ -21,6 +21,7 @@ var current_ammo_ready:= 8
 var max_ammo_reserves:= 32
 var current_ammo_reserves:= 32
 var reload_speed:= 1.0  # Reload time in seconds (upgradeable)
+var fire_rate := 0.25 # Fire rate delay in seconds (upgradeable) - lower values = faster shooting
 
 # Helper functions to emit signals when values change
 func set_hp(new_hp: float):
