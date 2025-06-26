@@ -16,7 +16,7 @@ var previous_state: PlayerState = PlayerState.IDLE
 
 # Movement variables
 const SPEED = 400.0
-const ROLL_SPEED = 560.0
+const ROLL_SPEED = 720.0
 const ATTACK_LUNGE_SPEED = 200.0
 var movement_locked = false
 var lunge_direction = Vector2.ZERO
@@ -532,3 +532,14 @@ func exit_rolling():
 func during_rolling(_delta: float):
 	# Dash forward in the input direction
 	velocity = lunge_direction * ROLL_SPEED
+
+
+func _on_pickuper_body_entered(body: Node2D) -> void:
+	if body.is_in_group("throwables"):
+		if Input.is_action_just_pressed("pick_up"):
+			# Pickup logic here. Basically i can think of something like this.
+			# If there are two objects in this area2d only get one of them.
+			# Set the object to invisible and disable collision in some kind of way.
+			# Make the position of that object follow the player so when we reenable it (simulating throw) it'll be easy.
+			
+			pass

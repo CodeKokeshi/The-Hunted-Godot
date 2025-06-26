@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://coe06lo7teqey"]
+
+[ext_resource type="Texture2D" uid="uid://b0nscmdh52u8g" path="res://Sprites/Rock/Rock.svg" id="1_5jrhi"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_5jrhi"]
+radius = 44.2832
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mjvut"]
+radius = 36.1248
+
+[node name="rock" type="Area2D"]
+collision_layer = 32
+collision_mask = 16
+
+[node name="sprite" type="Sprite2D" parent="."]
+texture = ExtResource("1_5jrhi")
+
+[node name="shape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_5jrhi")
+
+[node name="solid_body" type="StaticBody2D" parent="."]
+
+[node name="to_disable" type="CollisionShape2D" parent="solid_body"]
+shape = SubResource("CircleShape2D_mjvut")

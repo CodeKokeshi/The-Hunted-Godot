@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3 uid="uid://b17qvkt74384w"]
+[gd_scene load_steps=45 format=3 uid="uid://b17qvkt74384w"]
 
 [ext_resource type="Texture2D" uid="uid://bek504b3ydpn5" path="res://Sprites/Player/Shooting.svg" id="1_h4x7u"]
 [ext_resource type="Script" uid="uid://cndg285u740ly" path="res://Scripts/Players/Mark/mark.gd" id="1_wv3lo"]
@@ -280,6 +280,10 @@ positional_multiplier_y = 1.0
 rotational_multiplier = 1.0
 metadata/_custom_type_script = "uid://dimvdouy8g0sv"
 
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_yxmcl"]
+radius = 32.0
+height = 154.0
+
 [node name="mark" type="CharacterBody2D"]
 collision_mask = 2
 motion_mode = 1
@@ -289,7 +293,7 @@ script = ExtResource("1_wv3lo")
 
 [node name="animation" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_obbdb")
-animation = &"aiming"
+animation = &"throw"
 autoplay = "idle"
 
 [node name="body_shape" type="CollisionShape2D" parent="."]
@@ -303,3 +307,13 @@ script = ExtResource("10_yxmcl")
 noise = SubResource("Resource_34djb")
 duration = 0.25
 metadata/_custom_type_script = "uid://bhd4nuiu23e7l"
+
+[node name="pickuper" type="Area2D" parent="."]
+position = Vector2(64, 0)
+collision_layer = 16
+collision_mask = 32
+
+[node name="shape" type="CollisionShape2D" parent="pickuper"]
+shape = SubResource("CapsuleShape2D_yxmcl")
+
+[connection signal="body_entered" from="pickuper" to="." method="_on_pickuper_body_entered"]
