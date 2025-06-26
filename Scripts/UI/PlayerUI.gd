@@ -1,12 +1,12 @@
 extends Control
 
 # UI Elements
-@onready var hp_bar: ProgressBar = $VBoxContainer/BarsContainer/HPContainer/HPBar
-@onready var hp_label: Label = $VBoxContainer/BarsContainer/HPContainer/HPLabel
-@onready var stamina_bar: ProgressBar = $VBoxContainer/BarsContainer/StaminaContainer/StaminaBar
-@onready var stamina_label: Label = $VBoxContainer/BarsContainer/StaminaContainer/StaminaLabel
-@onready var ammo_label: Label = $VBoxContainer/AmmoContainer/AmmoLabel
-@onready var reload_indicator: Label = $VBoxContainer/AmmoContainer/ReloadIndicator
+@onready var hp_bar: ProgressBar = $DarkPanel/VBoxContainer/BarsContainer/HPContainer/HPBar
+@onready var hp_label: Label = $DarkPanel/VBoxContainer/BarsContainer/HPContainer/HPLabel
+@onready var stamina_bar: ProgressBar = $DarkPanel/VBoxContainer/BarsContainer/StaminaContainer/StaminaBar
+@onready var stamina_label: Label = $DarkPanel/VBoxContainer/BarsContainer/StaminaContainer/StaminaLabel
+@onready var ammo_label: Label = $DarkPanel/VBoxContainer/AmmoContainer/AmmoLabel
+@onready var reload_indicator: Label = $StatusPanel/ReloadIndicator
 
 # Animation tweens
 var hp_tween: Tween

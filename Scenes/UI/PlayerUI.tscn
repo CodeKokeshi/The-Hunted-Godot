@@ -1,6 +1,30 @@
-[gd_scene load_steps=2 format=3 uid="uid://drspcgk8h1jrh"]
+[gd_scene load_steps=4 format=3 uid="uid://drspcgk8h1jrh"]
 
 [ext_resource type="Script" uid="uid://de5m207h4wtbq" path="res://Scripts/UI/PlayerUI.gd" id="1_8xk5w"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.1, 0.1, 0.1, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.3, 0.3, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0.08, 0.08, 0.08, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.2, 0.2, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="PlayerUI" type="Control"]
 layout_mode = 3
@@ -12,23 +36,31 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_8xk5w")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-custom_minimum_size = Vector2(200, 80)
+[node name="DarkPanel" type="Panel" parent="."]
 layout_mode = 1
-offset_left = 20.0
-offset_top = 18.0
-offset_right = 220.0
-offset_bottom = 117.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = 225.0
+offset_bottom = 105.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
 
-[node name="BarsContainer" type="VBoxContainer" parent="VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="DarkPanel"]
+layout_mode = 1
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 200.0
+offset_bottom = 85.0
+grow_horizontal = 0
+
+[node name="BarsContainer" type="VBoxContainer" parent="DarkPanel/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 9
 
-[node name="HPContainer" type="Control" parent="VBoxContainer/BarsContainer"]
+[node name="HPContainer" type="Control" parent="DarkPanel/VBoxContainer/BarsContainer"]
 custom_minimum_size = Vector2(150, 18)
 layout_mode = 2
 
-[node name="HPBar" type="ProgressBar" parent="VBoxContainer/BarsContainer/HPContainer"]
+[node name="HPBar" type="ProgressBar" parent="DarkPanel/VBoxContainer/BarsContainer/HPContainer"]
 custom_minimum_size = Vector2(160, 24)
 layout_mode = 1
 anchors_preset = 15
@@ -37,10 +69,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 value = 100.0
-fill_mode = 1
+fill_mode = 0
 show_percentage = false
 
-[node name="HPLabel" type="Label" parent="VBoxContainer/BarsContainer/HPContainer"]
+[node name="HPLabel" type="Label" parent="DarkPanel/VBoxContainer/BarsContainer/HPContainer"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -51,11 +83,11 @@ text = "HP"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StaminaContainer" type="Control" parent="VBoxContainer/BarsContainer"]
+[node name="StaminaContainer" type="Control" parent="DarkPanel/VBoxContainer/BarsContainer"]
 custom_minimum_size = Vector2(150, 18)
 layout_mode = 2
 
-[node name="StaminaBar" type="ProgressBar" parent="VBoxContainer/BarsContainer/StaminaContainer"]
+[node name="StaminaBar" type="ProgressBar" parent="DarkPanel/VBoxContainer/BarsContainer/StaminaContainer"]
 custom_minimum_size = Vector2(160, 24)
 layout_mode = 1
 anchors_preset = 15
@@ -64,10 +96,10 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 value = 100.0
-fill_mode = 1
+fill_mode = 0
 show_percentage = false
 
-[node name="StaminaLabel" type="Label" parent="VBoxContainer/BarsContainer/StaminaContainer"]
+[node name="StaminaLabel" type="Label" parent="DarkPanel/VBoxContainer/BarsContainer/StaminaContainer"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -78,27 +110,34 @@ text = "Stamina"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="AmmoContainer" type="VBoxContainer" parent="VBoxContainer"]
+[node name="AmmoContainer" type="VBoxContainer" parent="DarkPanel/VBoxContainer"]
 layout_mode = 2
 
-[node name="AmmoLabel" type="Label" parent="VBoxContainer/AmmoContainer"]
+[node name="AmmoLabel" type="Label" parent="DarkPanel/VBoxContainer/AmmoContainer"]
 layout_mode = 2
 text = "Ammo: 8/40"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ReloadIndicator" type="Label" parent="VBoxContainer/AmmoContainer"]
-layout_mode = 2
+[node name="StatusPanel" type="Panel" parent="."]
+layout_mode = 1
+offset_left = 15.0
+offset_top = 115.0
+offset_right = 225.0
+offset_bottom = 145.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_2")
+
+[node name="ReloadIndicator" type="Label" parent="StatusPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = 3.0
+offset_right = -5.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "RELOADING"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="UIBackground" type="NinePatchRect" parent="."]
-z_index = -1
-layout_mode = 1
-offset_left = 15.0
-offset_top = 15.0
-offset_right = 305.0
-offset_bottom = 125.0
-grow_horizontal = 0
-grow_vertical = 0
