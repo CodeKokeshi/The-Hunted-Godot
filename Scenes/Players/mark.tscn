@@ -36,6 +36,10 @@ region = Rect2(384, 0, 192, 192)
 atlas = ExtResource("3_g515n")
 region = Rect2(0, 0, 192, 192)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_of13d"]
+atlas = ExtResource("5_wv3lo")
+region = Rect2(0, 0, 192, 192)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_obbdb"]
 atlas = ExtResource("4_wv3lo")
 region = Rect2(0, 0, 192, 192)
@@ -91,10 +95,6 @@ region = Rect2(576, 0, 192, 192)
 [sub_resource type="AtlasTexture" id="AtlasTexture_jnqfx"]
 atlas = ExtResource("4_oespy")
 region = Rect2(768, 0, 192, 192)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_of13d"]
-atlas = ExtResource("5_wv3lo")
-region = Rect2(0, 0, 192, 192)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_w3ywu"]
 atlas = ExtResource("5_wv3lo")
@@ -167,6 +167,14 @@ animations = [{
 "loop": false,
 "name": &"idle",
 "speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_of13d")
+}],
+"loop": false,
+"name": &"idle_carrying",
+"speed": 5.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -293,7 +301,7 @@ script = ExtResource("1_wv3lo")
 
 [node name="animation" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_obbdb")
-animation = &"throw"
+animation = &"idle_carrying"
 autoplay = "idle"
 
 [node name="body_shape" type="CollisionShape2D" parent="."]

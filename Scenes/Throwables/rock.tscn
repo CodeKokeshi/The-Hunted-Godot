@@ -9,6 +9,7 @@ radius = 44.2832
 radius = 36.1248
 
 [node name="rock" type="Area2D"]
+z_index = -1
 collision_layer = 32
 collision_mask = 16
 
@@ -19,6 +20,8 @@ texture = ExtResource("1_5jrhi")
 shape = SubResource("CircleShape2D_5jrhi")
 
 [node name="solid_body" type="StaticBody2D" parent="."]
+collision_layer = 2
+collision_mask = 2
 
 [node name="to_disable" type="CollisionShape2D" parent="solid_body"]
 shape = SubResource("CircleShape2D_mjvut")

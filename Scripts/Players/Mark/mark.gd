@@ -541,5 +541,20 @@ func _on_pickuper_body_entered(body: Node2D) -> void:
 			# If there are two objects in this area2d only get one of them.
 			# Set the object to invisible and disable collision in some kind of way.
 			# Make the position of that object follow the player so when we reenable it (simulating throw) it'll be easy.
-			
+			# If picked up, the animation of the player will switch to "idle_carrying" if not moving and run_carrying if moving.
+			# Then the sprite of the rock will appear above the player. (rotating as well relatively) simulating carrying the rock itself. The carried rock is called "rock_thrown.tscn" this has no collision and this is what we'll make of to simulate the fake sprite of rock that we throw
+			# When thrown it will play the "mid_air" animation.
 			pass
+
+# So about the throw logic.
+# First we throw a raycast from the bullet_spawn. Straight towards the player facing direction (default right 0 degrees) --> exactly 256px max.
+# This raycast will calculate if it will hit a wall or something and will calculate how further we will spawn the rock (we disabled before) and play the animation of the fake rock being thrown.
+
+# Now the put down logic
+# if the player pressed the "pick_up" again while carrying something.
+# Then put it down and spawn it in the $pickuper position.
+# of course always detect if there's wall in front before being able to put it down.
+# From the "player" (mark) the distance of the $pickuper is 96px.
+# within that 96 pixel there must be no walls so we can put down the picked up object.
+
+# lastly the player must not be able to roll or shoot, or any attack, only idle and run (which is replaced by idle_carrying and run_carrying) animation.
