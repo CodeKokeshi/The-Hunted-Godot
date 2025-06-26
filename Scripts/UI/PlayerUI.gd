@@ -160,8 +160,8 @@ func update_ammo_display():
 	var max_ammo = PlayerGlobals.max_ammo_ready
 	var reserves = PlayerGlobals.current_ammo_reserves
 	
-	# Update ammo display: "Ammo: 8/32"
-	ammo_label.text = "Ammo: %d/%d" % [current_ammo, reserves + current_ammo]
+	# Update ammo display: "Ammo: 8/32" (magazine/reserves)
+	ammo_label.text = "Ammo: %d/%d" % [current_ammo, reserves]
 	
 	# Color coding for ammo levels
 	if current_ammo == 0:
