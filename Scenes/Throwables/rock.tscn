@@ -8,7 +8,7 @@ radius = 44.2832
 [sub_resource type="CircleShape2D" id="CircleShape2D_mjvut"]
 radius = 36.1248
 
-[node name="rock" type="Area2D"]
+[node name="rock" type="Area2D" groups=["throwables"]]
 z_index = -1
 collision_layer = 32
 collision_mask = 16

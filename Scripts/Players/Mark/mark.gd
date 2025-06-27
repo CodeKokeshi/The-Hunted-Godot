@@ -7,7 +7,10 @@ enum PlayerState {
 	AIMING,
 	FIRING,
 	ATTACKING,
-	ROLLING
+	ROLLING,
+	CARRYING_IDLE,
+	CARRYING_RUNNING,
+	THROWING
 }
 
 # State machine variables
@@ -24,11 +27,22 @@ var lunge_direction = Vector2.ZERO
 # Animation and rotation
 @onready var animation_player = $animation
 @onready var bullet_spawn_point = $bullet_spawn
+@onready var pickuper_area = $pickuper
 var target_rotation = 0.0
 var rotation_tween: Tween
 
 # Bullet system
 const BULLET_SCENE = preload("res://Scenes/Players/bullet.tscn")
+const ROCK_THROWN_SCENE = preload("res://Scenes/Throwables/rock_thrown.tscn")
+
+# Rock throwing system
+var is_carrying_object = false
+var carried_object: Node2D = null
+var carried_object_sprite: AnimatedSprite2D = null
+const THROW_RAYCAST_DISTANCE = 256.0
+const PICKUP_DISTANCE = 96.0
+var pickup_cooldown = 0.0
+const PICKUP_COOLDOWN_TIME = 0.2
 
 # Input tracking
 var input_direction = Vector2.ZERO
@@ -59,6 +73,7 @@ func _physics_process(delta):
 	handle_input()
 	update_state(delta)
 	regenerate_stamina(delta)
+	update_pickup_cooldown(delta)
 	move_and_slide()
 
 # ============================================================================
@@ -79,6 +94,12 @@ func consume_roll_stamina():
 	PlayerGlobals.current_stamina -= PlayerGlobals.roll_cost
 	# Ensure it doesn't go below 0
 	PlayerGlobals.current_stamina = max(PlayerGlobals.current_stamina, 0)
+
+func update_pickup_cooldown(delta: float):
+	if pickup_cooldown > 0.0:
+		pickup_cooldown -= delta
+		if pickup_cooldown < 0.0:
+			pickup_cooldown = 0.0
 
 # ============================================================================
 # STATE MACHINE FUNCTIONS
@@ -113,6 +134,12 @@ func enter_state(state: PlayerState):
 			enter_attacking()
 		PlayerState.ROLLING:
 			enter_rolling()
+		PlayerState.CARRYING_IDLE:
+			enter_carrying_idle()
+		PlayerState.CARRYING_RUNNING:
+			enter_carrying_running()
+		PlayerState.THROWING:
+			enter_throwing()
 
 # Exit state logic
 func exit_state(state: PlayerState):
@@ -129,6 +156,12 @@ func exit_state(state: PlayerState):
 			exit_attacking()
 		PlayerState.ROLLING:
 			exit_rolling()
+		PlayerState.CARRYING_IDLE:
+			exit_carrying_idle()
+		PlayerState.CARRYING_RUNNING:
+			exit_carrying_running()
+		PlayerState.THROWING:
+			exit_throwing()
 
 # Update state logic (during)
 func update_state(delta: float):
@@ -151,6 +184,12 @@ func update_state(delta: float):
 			during_attacking(delta)
 		PlayerState.ROLLING:
 			during_rolling(delta)
+		PlayerState.CARRYING_IDLE:
+			during_carrying_idle(delta)
+		PlayerState.CARRYING_RUNNING:
+			during_carrying_running(delta)
+		PlayerState.THROWING:
+			during_throwing(delta)
 
 # ============================================================================
 # INPUT HANDLING
@@ -166,13 +205,19 @@ func handle_input():
 	# Track aiming input
 	is_aiming = Input.is_action_pressed("aim")
 	
+	# Handle pickup input
+	handle_pickup_input()
+	
 	# Handle state transitions based on input
 	handle_state_transitions()
 
 func handle_state_transitions():
 	match current_state:
 		PlayerState.IDLE:
-			if Input.is_action_just_pressed("reload"):
+			if is_carrying_object:
+				# When carrying, transition to carrying idle
+				change_state(PlayerState.CARRYING_IDLE)
+			elif Input.is_action_just_pressed("reload"):
 				start_reload()
 			elif Input.is_action_just_pressed("roll") and input_direction != Vector2.ZERO and has_enough_stamina_for_roll():
 				change_state(PlayerState.ROLLING)
@@ -190,7 +235,10 @@ func handle_state_transitions():
 				change_state(PlayerState.RUNNING)
 		
 		PlayerState.RUNNING:
-			if Input.is_action_just_pressed("reload"):
+			if is_carrying_object:
+				# When carrying, transition to carrying running
+				change_state(PlayerState.CARRYING_RUNNING)
+			elif Input.is_action_just_pressed("reload"):
 				start_reload()
 			elif Input.is_action_just_pressed("roll") and has_enough_stamina_for_roll():
 				change_state(PlayerState.ROLLING)
@@ -222,7 +270,33 @@ func handle_state_transitions():
 				else:
 					change_state(PlayerState.IDLE)
 		
-		# Other states (FIRING, ATTACKING, ROLLING, RELOADING) transition automatically via animation_finished or timer
+		PlayerState.CARRYING_IDLE:
+			if Input.is_action_just_pressed("pick_up") and pickup_cooldown <= 0.0:
+				# Put down the object
+				put_down_object()
+			elif Input.is_action_just_pressed("attack"):
+				# Check if throw is possible before changing state
+				if can_throw_object():
+					change_state(PlayerState.THROWING)
+				else:
+					print("Cannot throw - path blocked or destination not clear")
+			elif input_direction != Vector2.ZERO:
+				change_state(PlayerState.CARRYING_RUNNING)
+		
+		PlayerState.CARRYING_RUNNING:
+			if Input.is_action_just_pressed("pick_up") and pickup_cooldown <= 0.0:
+				# Put down the object
+				put_down_object()
+			elif Input.is_action_just_pressed("attack"):
+				# Check if throw is possible before changing state
+				if can_throw_object():
+					change_state(PlayerState.THROWING)
+				else:
+					print("Cannot throw - path blocked or destination not clear")
+			elif input_direction == Vector2.ZERO:
+				change_state(PlayerState.CARRYING_IDLE)
+		
+		# Other states (FIRING, ATTACKING, ROLLING, THROWING) transition automatically via animation_finished or timer
 
 # ============================================================================
 # ROTATION AND MOVEMENT HELPERS
@@ -382,6 +456,25 @@ func _on_animation_finished():
 				change_state(PlayerState.RUNNING)
 			else:
 				change_state(PlayerState.IDLE)
+		
+		PlayerState.THROWING:
+			# Throwing animation finished, transition based on carrying state
+			print("Throwing animation finished. is_carrying_object: ", is_carrying_object)
+			# Note: After throwing, is_carrying_object should be false
+			if is_carrying_object:
+				# Still carrying something (shouldn't happen after throw)
+				print("Still carrying object after throw - this shouldn't happen")
+				if input_direction != Vector2.ZERO:
+					change_state(PlayerState.CARRYING_RUNNING)
+				else:
+					change_state(PlayerState.CARRYING_IDLE)
+			else:
+				# Not carrying anything anymore (normal after throw)
+				print("Not carrying object - transitioning to normal states")
+				if input_direction != Vector2.ZERO:
+					change_state(PlayerState.RUNNING)
+				else:
+					change_state(PlayerState.IDLE)
 
 # ============================================================================
 # IDLE STATE
@@ -534,27 +627,258 @@ func during_rolling(_delta: float):
 	velocity = lunge_direction * ROLL_SPEED
 
 
-func _on_pickuper_body_entered(body: Node2D) -> void:
-	if body.is_in_group("throwables"):
-		if Input.is_action_just_pressed("pick_up"):
-			# Pickup logic here. Basically i can think of something like this.
-			# If there are two objects in this area2d only get one of them.
-			# Set the object to invisible and disable collision in some kind of way.
-			# Make the position of that object follow the player so when we reenable it (simulating throw) it'll be easy.
-			# If picked up, the animation of the player will switch to "idle_carrying" if not moving and run_carrying if moving.
-			# Then the sprite of the rock will appear above the player. (rotating as well relatively) simulating carrying the rock itself. The carried rock is called "rock_thrown.tscn" this has no collision and this is what we'll make of to simulate the fake sprite of rock that we throw
-			# When thrown it will play the "mid_air" animation.
-			pass
+func _on_pickuper_area_entered(area: Area2D) -> void:
+	# This function is just for detecting objects in range
+	# The actual pickup happens in handle_pickup_input()
+	pass
 
-# So about the throw logic.
-# First we throw a raycast from the bullet_spawn. Straight towards the player facing direction (default right 0 degrees) --> exactly 256px max.
-# This raycast will calculate if it will hit a wall or something and will calculate how further we will spawn the rock (we disabled before) and play the animation of the fake rock being thrown.
+func handle_pickup_input():
+	# Check for pickup input when not carrying anything and cooldown is finished
+	if Input.is_action_just_pressed("pick_up") and not is_carrying_object and pickup_cooldown <= 0.0:
+		# Get all areas in the pickuper area (since rocks are Area2D)
+		var areas_in_range = pickuper_area.get_overlapping_areas()
+		for area in areas_in_range:
+			if area.is_in_group("throwables"):
+				pick_up_object(area)
+				break  # Only pick up one object
 
-# Now the put down logic
-# if the player pressed the "pick_up" again while carrying something.
-# Then put it down and spawn it in the $pickuper position.
-# of course always detect if there's wall in front before being able to put it down.
-# From the "player" (mark) the distance of the $pickuper is 96px.
-# within that 96 pixel there must be no walls so we can put down the picked up object.
+# ============================================================================
+# ROCK THROWING SYSTEM
+# ============================================================================
 
-# lastly the player must not be able to roll or shoot, or any attack, only idle and run (which is replaced by idle_carrying and run_carrying) animation.
+func check_space_clear(position: Vector2, buffer_size: float = 32.0) -> bool:
+	# Check if there's clear space at the given position
+	var space_state = get_world_2d().direct_space_state
+	var query = PhysicsPointQueryParameters2D.new()
+	query.position = position
+	query.collision_mask = 2  # Check against walls/solid bodies
+	query.exclude = [self]
+	
+	var result = space_state.intersect_point(query)
+	return result.size() == 0
+
+func can_throw_object() -> bool:
+	if not is_carrying_object or not carried_object:
+		return false
+	
+	# Check for clear path at multiple distances before throwing
+	var forward_direction = Vector2(cos(rotation), sin(rotation))
+	var check_distances = [16, 32, 64, 96]
+	
+	for distance in check_distances:
+		var check_position = global_position + forward_direction * distance
+		if not check_space_clear(check_position, 16.0):  # Use smaller buffer for path checking
+			return false
+	
+	# Check the final destination
+	var space_state = get_world_2d().direct_space_state
+	var from = bullet_spawn_point.global_position
+	var to = from + forward_direction * THROW_RAYCAST_DISTANCE
+	
+	# Create raycast query
+	var query = PhysicsRayQueryParameters2D.create(from, to)
+	query.collision_mask = 2  # Check against walls/solid bodies
+	query.exclude = [self]
+	
+	var result = space_state.intersect_ray(query)
+	var throw_destination: Vector2
+	
+	if result.is_empty():
+		# No collision, throw to max distance
+		throw_destination = to
+	else:
+		# Hit something, throw just before the collision point
+		throw_destination = result.position - forward_direction * 32  # 32px buffer
+	
+	# Check that the destination is clear
+	return check_space_clear(throw_destination, 32.0)
+
+func pick_up_object(object: Node2D):
+	# Store reference to the carried object
+	carried_object = object
+	is_carrying_object = true
+	
+	# Hide the original object and disable its collision
+	object.visible = false
+	if object.has_node("shape"):
+		object.get_node("shape").set_deferred("disabled", true)
+	if object.has_node("solid_body/to_disable"):
+		object.get_node("solid_body/to_disable").set_deferred("disabled", true)
+	
+	# Create the carried sprite (rock_thrown scene)
+	carried_object_sprite = ROCK_THROWN_SCENE.instantiate()
+	carried_object_sprite.animation = "carried"
+	carried_object_sprite.position = Vector2(0, -40)  # Centered above the player
+	add_child(carried_object_sprite)
+	
+	# Transition to carrying idle state
+	change_state(PlayerState.CARRYING_IDLE)
+	# Set pickup cooldown to prevent immediate put-down
+	pickup_cooldown = PICKUP_COOLDOWN_TIME
+	print("Picked up object: ", object.name)
+
+func put_down_object():
+	if not is_carrying_object or not carried_object:
+		return
+	
+	# Check if there's space to put down the object (96px in front)
+	var forward_direction = Vector2(cos(rotation), sin(rotation))
+	var put_down_position = global_position + forward_direction * PICKUP_DISTANCE
+	
+	if not check_space_clear(put_down_position):
+		print("Cannot put down object - space occupied")
+		return
+	
+	# Remove the carried sprite
+	if carried_object_sprite:
+		carried_object_sprite.queue_free()
+		carried_object_sprite = null
+	
+	# Restore the original object
+	carried_object.global_position = put_down_position
+	carried_object.visible = true
+	if carried_object.has_node("shape"):
+		carried_object.get_node("shape").set_deferred("disabled", false)
+	if carried_object.has_node("solid_body/to_disable"):
+		carried_object.get_node("solid_body/to_disable").set_deferred("disabled", false)
+	
+	# Reset carrying state
+	carried_object = null
+	is_carrying_object = false
+	
+	# Transition back to normal state
+	if input_direction != Vector2.ZERO:
+		change_state(PlayerState.RUNNING)
+	else:
+		change_state(PlayerState.IDLE)
+	
+	# Set pickup cooldown to prevent immediate pickup
+	pickup_cooldown = PICKUP_COOLDOWN_TIME
+	print("Put down object at position: ", put_down_position)
+
+func throw_object():
+	if not is_carrying_object or not carried_object:
+		return
+	
+	# Calculate throw destination (we already validated this is possible)
+	var forward_direction = Vector2(cos(rotation), sin(rotation))
+	var space_state = get_world_2d().direct_space_state
+	var from = bullet_spawn_point.global_position
+	var to = from + forward_direction * THROW_RAYCAST_DISTANCE
+	
+	# Create raycast query
+	var query = PhysicsRayQueryParameters2D.create(from, to)
+	query.collision_mask = 2  # Check against walls/solid bodies
+	query.exclude = [self]
+	
+	var result = space_state.intersect_ray(query)
+	var throw_destination: Vector2
+	
+	if result.is_empty():
+		# No collision, throw to max distance
+		throw_destination = to
+	else:
+		# Hit something, throw just before the collision point
+		throw_destination = result.position - forward_direction * 32  # 32px buffer
+	
+	# Update carried sprite animation to mid_air and detach from player
+	if carried_object_sprite:
+		# Store the current global position before reparenting
+		var current_global_pos = carried_object_sprite.global_position
+		
+		# Remove from player and add to the same level as player (world)
+		remove_child(carried_object_sprite)
+		get_parent().add_child(carried_object_sprite)
+		
+		# Restore the global position after reparenting
+		carried_object_sprite.global_position = current_global_pos
+		
+		# Now animate the independent sprite
+		carried_object_sprite.animation = "mid_air"
+		
+		# Create a tween to animate the thrown rock
+		var throw_tween = create_tween()
+		throw_tween.parallel().tween_property(carried_object_sprite, "global_position", throw_destination, 0.5)
+		throw_tween.parallel().tween_property(carried_object_sprite, "scale", Vector2(0.8, 0.8), 0.5)
+		
+		# When animation completes, place the real object
+		throw_tween.tween_callback(complete_throw.bind(throw_destination))
+	else:
+		# Fallback if no sprite
+		complete_throw(throw_destination)
+	
+	print("Throwing object to position: ", throw_destination)
+
+func complete_throw(destination: Vector2):
+	print("complete_throw called - resetting carrying state")
+	
+	# Remove the carried sprite
+	if carried_object_sprite:
+		carried_object_sprite.queue_free()
+		carried_object_sprite = null
+	
+	# Place the real object at destination
+	if carried_object:
+		carried_object.global_position = destination
+		carried_object.visible = true
+		if carried_object.has_node("shape"):
+			carried_object.get_node("shape").set_deferred("disabled", false)
+		if carried_object.has_node("solid_body/to_disable"):
+			carried_object.get_node("solid_body/to_disable").set_deferred("disabled", false)
+	
+	# Reset carrying state
+	carried_object = null
+	is_carrying_object = false
+	
+	print("Object thrown and placed at: ", destination)
+	print("is_carrying_object is now: ", is_carrying_object)
+
+# ============================================================================
+# CARRYING IDLE STATE
+# ============================================================================
+
+func enter_carrying_idle():
+	animation_player.play("idle_carrying")
+	movement_locked = false
+	velocity = Vector2.ZERO
+
+func exit_carrying_idle():
+	pass
+
+func during_carrying_idle(_delta: float):
+	velocity = Vector2.ZERO
+
+# ============================================================================
+# CARRYING RUNNING STATE
+# ============================================================================
+
+func enter_carrying_running():
+	animation_player.play("run_carrying")
+	movement_locked = false
+
+func exit_carrying_running():
+	pass
+
+func during_carrying_running(_delta: float):
+	if not movement_locked:
+		rotate_to_direction(input_direction)
+		velocity = input_direction * SPEED
+
+# ============================================================================
+# THROWING STATE
+# ============================================================================
+
+func enter_throwing():
+	animation_player.play("throw")
+	movement_locked = true
+	velocity = Vector2.ZERO
+	# Perform the throw and immediately reset carrying state
+	throw_object()
+	# Reset carrying state immediately since we're now throwing
+	is_carrying_object = false
+
+func exit_throwing():
+	movement_locked = false
+
+func during_throwing(_delta: float):
+	velocity = Vector2.ZERO
