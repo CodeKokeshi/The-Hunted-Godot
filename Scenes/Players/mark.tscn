@@ -292,7 +292,7 @@ metadata/_custom_type_script = "uid://dimvdouy8g0sv"
 radius = 32.0
 height = 154.0
 
-[node name="mark" type="CharacterBody2D"]
+[node name="mark" type="CharacterBody2D" groups=["player"]]
 collision_mask = 2
 motion_mode = 1
 wall_min_slide_angle = 0.0

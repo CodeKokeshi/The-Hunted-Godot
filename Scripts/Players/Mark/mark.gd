@@ -68,12 +68,19 @@ func _ready():
 	
 	# Connect animation finished signal
 	animation_player.animation_finished.connect(_on_animation_finished)
+	
+	# Connect to stealth signals for feedback
+	PlayerGlobals.stealth_state_changed.connect(_on_stealth_state_changed)
+	PlayerGlobals.stealth_broken.connect(_on_stealth_broken)
+	PlayerGlobals.stealth_cooldown_finished.connect(_on_stealth_cooldown_finished)
 
 func _physics_process(delta):
 	handle_input()
 	update_state(delta)
 	regenerate_stamina(delta)
 	update_pickup_cooldown(delta)
+	# Update stealth cooldown timer
+	PlayerGlobals.update_stealth_cooldown(delta)
 	move_and_slide()
 
 # ============================================================================
@@ -534,6 +541,10 @@ func during_aiming(_delta: float):
 # ============================================================================
 
 func enter_firing():
+	# Break stealth when firing
+	if PlayerGlobals.player_hidden:
+		PlayerGlobals.break_stealth()
+	
 	# Update rotation to current mouse position before starting animation
 	look_at_mouse()
 	# Play firing animation
@@ -587,6 +598,10 @@ func during_firing(_delta: float):
 # ============================================================================
 
 func enter_attacking():
+	# Break stealth when attacking (slashing)
+	if PlayerGlobals.player_hidden:
+		PlayerGlobals.break_stealth()
+	
 	animation_player.play("knife")
 	movement_locked = true
 	# Rotate to face current input direction first, then store it for lunge
@@ -882,3 +897,16 @@ func exit_throwing():
 
 func during_throwing(_delta: float):
 	velocity = Vector2.ZERO
+
+# ============================================================================
+# STEALTH SIGNAL HANDLERS
+# ============================================================================
+
+func _on_stealth_state_changed(is_hidden: bool):
+	print("Player stealth changed: ", "HIDDEN" if is_hidden else "VISIBLE")
+
+func _on_stealth_broken():
+	print("Player stealth BROKEN - 2 second cooldown started")
+
+func _on_stealth_cooldown_finished():
+	print("Stealth cooldown finished - can hide in bushes again")
