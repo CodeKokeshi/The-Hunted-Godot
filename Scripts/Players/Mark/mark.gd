@@ -28,6 +28,7 @@ var lunge_direction = Vector2.ZERO
 @onready var animation_player = $animation
 @onready var bullet_spawn_point = $bullet_spawn
 @onready var pickuper_area = $pickuper
+@onready var slash_hitbox = $slash_hitbox
 var target_rotation = 0.0
 var rotation_tween: Tween
 
@@ -81,6 +82,8 @@ func _physics_process(delta):
 	update_pickup_cooldown(delta)
 	# Update stealth cooldown timer
 	PlayerGlobals.update_stealth_cooldown(delta)
+	# Update slash hitbox based on animation
+	update_slash_hitbox()
 	move_and_slide()
 
 # ============================================================================
@@ -107,6 +110,28 @@ func update_pickup_cooldown(delta: float):
 		pickup_cooldown -= delta
 		if pickup_cooldown < 0.0:
 			pickup_cooldown = 0.0
+
+func update_slash_hitbox():
+	# Enable slash hitbox only during knife animation frames 1-3
+	if animation_player.animation == "knife":
+		var current_frame = animation_player.frame
+		# Enable hitbox for frames 1, 2, and 3 (excluding frame 0)
+		if current_frame >= 1 and current_frame <= 3:
+			if not slash_hitbox.monitoring:  # Only print when state changes
+				print("Slash hitbox ENABLED - Frame: ", current_frame)
+			slash_hitbox.monitoring = true
+			slash_hitbox.monitorable = true
+		else:
+			if slash_hitbox.monitoring:  # Only print when state changes
+				print("Slash hitbox DISABLED - Frame: ", current_frame)
+			slash_hitbox.monitoring = false
+			slash_hitbox.monitorable = false
+	else:
+		# Disable hitbox for all other animations
+		if slash_hitbox.monitoring:  # Only print when state changes
+			print("Slash hitbox DISABLED - Not knife animation")
+		slash_hitbox.monitoring = false
+		slash_hitbox.monitorable = false
 
 # ============================================================================
 # STATE MACHINE FUNCTIONS

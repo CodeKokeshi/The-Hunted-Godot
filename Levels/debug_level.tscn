@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=4 uid="uid://div0mtlronfrk"]
+[gd_scene load_steps=13 format=4 uid="uid://div0mtlronfrk"]
 
 [ext_resource type="PackedScene" uid="uid://b17qvkt74384w" path="res://Scenes/Players/mark.tscn" id="1_38y6l"]
 [ext_resource type="Script" uid="uid://bd046eokvcnu2" path="res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd" id="2_65113"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://drspcgk8h1jrh" path="res://Scenes/UI/PlayerUI.tscn" id="6_c637e"]
 [ext_resource type="PackedScene" uid="uid://coe06lo7teqey" path="res://Scenes/Throwables/rock.tscn" id="7_uhfjj"]
 [ext_resource type="PackedScene" uid="uid://x7sr6cykt8mm" path="res://Scenes/Environment/bush.tscn" id="8_vv8nt"]
+[ext_resource type="PackedScene" uid="uid://j04kbtsyu2qe" path="res://Temp/fake_enemy.tscn" id="9_32nha"]
 
 [sub_resource type="Resource" id="Resource_uhfjj"]
 script = ExtResource("4_c637e")
@@ -543,3 +544,6 @@ position = Vector2(902, 103)
 [node name="bush" parent="." instance=ExtResource("8_vv8nt")]
 z_index = -1
 position = Vector2(588, -135)
+
+[node name="FakeEnemy" parent="." instance=ExtResource("9_32nha")]
+position = Vector2(1169, -168)
