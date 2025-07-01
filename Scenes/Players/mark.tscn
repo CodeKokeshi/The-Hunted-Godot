@@ -324,4 +324,6 @@ collision_mask = 32
 [node name="shape" type="CollisionShape2D" parent="pickuper"]
 shape = SubResource("CapsuleShape2D_yxmcl")
 
+[node name="carried_object_pos" type="Marker2D" parent="."]
+
 [connection signal="area_entered" from="pickuper" to="." method="_on_pickuper_area_entered"]
