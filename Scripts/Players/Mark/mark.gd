@@ -723,7 +723,7 @@ func pick_up_object(object: Node2D):
 	# Create the carried sprite (rock_thrown scene)
 	carried_object_sprite = ROCK_THROWN_SCENE.instantiate()
 	carried_object_sprite.animation = "carried"
-	carried_object_sprite.position = Vector2(0, -40)  # Centered above the player
+	carried_object_sprite.position = $carried_object_pos.position  # Use the marker position
 	add_child(carried_object_sprite)
 	
 	# Transition to carrying idle state

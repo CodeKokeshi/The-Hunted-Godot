@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3 uid="uid://b17qvkt74384w"]
+[gd_scene load_steps=46 format=3 uid="uid://b17qvkt74384w"]
 
 [ext_resource type="Texture2D" uid="uid://bek504b3ydpn5" path="res://Sprites/Player/Shooting.svg" id="1_h4x7u"]
 [ext_resource type="Script" uid="uid://cndg285u740ly" path="res://Scripts/Players/Mark/mark.gd" id="1_wv3lo"]
@@ -292,6 +292,9 @@ metadata/_custom_type_script = "uid://dimvdouy8g0sv"
 radius = 32.0
 height = 154.0
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yxmcl"]
+size = Vector2(74, 90)
+
 [node name="mark" type="CharacterBody2D" groups=["player"]]
 collision_mask = 2
 motion_mode = 1
@@ -301,8 +304,9 @@ script = ExtResource("1_wv3lo")
 
 [node name="animation" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_obbdb")
-animation = &"idle_carrying"
+animation = &"knife"
 autoplay = "idle"
+frame = 2
 
 [node name="body_shape" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_i3meb")
@@ -325,5 +329,13 @@ collision_mask = 32
 shape = SubResource("CapsuleShape2D_yxmcl")
 
 [node name="carried_object_pos" type="Marker2D" parent="."]
+
+[node name="slash_hitbox" type="Area2D" parent="."]
+monitoring = false
+monitorable = false
+
+[node name="shape" type="CollisionShape2D" parent="slash_hitbox"]
+position = Vector2(59, 0)
+shape = SubResource("RectangleShape2D_yxmcl")
 
 [connection signal="area_entered" from="pickuper" to="." method="_on_pickuper_area_entered"]
